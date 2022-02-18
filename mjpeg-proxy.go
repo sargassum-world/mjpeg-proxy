@@ -138,14 +138,22 @@ func listenAndServe(addr string) error {
 	return server.Serve(listener)
 }
 
+func lookupEnvOrString(key string, defaultVal string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return val
+	}
+	return defaultVal
+}
+
 func main() {
-	source := flag.String("source", "http://example.com/img.mjpg", "source uri")
-	username := flag.String("username", "", "source uri username")
-	password := flag.String("password", "", "source uri password")
+	// TODO: allow setting all flags from env vars, not just the string flags
+	source := flag.String("source", lookupEnvOrString("SOURCE_URL", "http://example.com/img.mjpg"), "source uri")
+	username := flag.String("username", lookupEnvOrString("SOURCE_USERNAME", ""), "source uri username")
+	password := flag.String("password", lookupEnvOrString("SOURCE_PASSWORD", ""), "source uri password")
 	digest := flag.Bool("digest", false, "source uri uses digest authentication")
-	sources := flag.String("sources", "", "JSON configuration file to load sources from")
-	bind := flag.String("bind", ":8080", "proxy bind address")
-	path := flag.String("path", "/", "proxy serving path")
+	sources := flag.String("sources", lookupEnvOrString("SOURCES_JSON", ""), "JSON configuration file to load sources from")
+	bind := flag.String("bind", lookupEnvOrString("SERVE_BIND", ":8080"), "proxy bind address")
+	path := flag.String("path", lookupEnvOrString("SERVE_PATH", "/"), "proxy serving path")
 	rate := flag.Float64("rate", 0, "limit output frame rate")
 	maxprocs := flag.Int("maxprocs", 0, "limit number of CPUs used")
 	flag.DurationVar(&frameTimeout, "frametimeout", 60*time.Second, "limit waiting for next frame")
